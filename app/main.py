@@ -62,7 +62,8 @@ def create_pickems(user_name: str, pickem: PickemCreate, db: Session = Depends(g
     
     if existing_pickem:
         raise HTTPException(status_code=400, detail="Pickem already exists for this user.")
-
+    
+    # Create a new pickem record
     new_pickem = Pickems(
         UserName=user_name,
         UserKey=user_key,
@@ -75,12 +76,12 @@ def create_pickems(user_name: str, pickem: PickemCreate, db: Session = Depends(g
         Team6=pickem.Top8Teams[4] if len(pickem.Top8Teams) > 4 else None,
         Team7=pickem.Top8Teams[5] if len(pickem.Top8Teams) > 5 else None,
         Team8=pickem.Top8Teams[6] if len(pickem.Top8Teams) > 6 else None,
-        QF1=pickem.Quarters[0] if len(pickem.Quarters) > 0 else None,
-        QF2=pickem.Quarters[1] if len(pickem.Quarters) > 1 else None,
-        QF3=pickem.Quarters[2] if len(pickem.Quarters) > 2 else None,
-        QF4=pickem.Quarters[3] if len(pickem.Quarters) > 3 else None,
-        SF1=pickem.Semis[0] if len(pickem.Semis) > 0 else None,
-        SF2=pickem.Semis[1] if len(pickem.Semis) > 1 else None,
+        QF1=pickem.Quarters[0] if pickem.Quarters is not None else None,
+        QF2=pickem.Quarters[1] if pickem.Quarters is not None else None,
+        QF3=pickem.Quarters[2] if pickem.Quarters is not None else None,
+        QF4=pickem.Quarters[3] if pickem.Quarters is not None else None,
+        SF1=pickem.Semis[0] if pickem.Semis is not None else None,
+        SF2=pickem.Semis[1] if pickem.Semis is not None else None,
         Final=pickem.Final if pickem.Final is not None else None,
         Points=0
     )
@@ -124,13 +125,15 @@ def update_pickems(user_name: str, user_key: int, pickem: PickemCreate, db: Sess
     existing_pickem.Team6 = pickem.Top8Teams[4] if len(pickem.Top8Teams) > 4 else None
     existing_pickem.Team7 = pickem.Top8Teams[5] if len(pickem.Top8Teams) > 5 else None
     existing_pickem.Team8 = pickem.Top8Teams[6] if len(pickem.Top8Teams) > 6 else None
-    existing_pickem.QF1 = pickem.Quarters[0] if len(pickem.Quarters) > 0 else None
-    existing_pickem.QF2 = pickem.Quarters[1] if len(pickem.Quarters) > 1 else None
-    existing_pickem.QF3 = pickem.Quarters[2] if len(pickem.Quarters) > 2 else None
-    existing_pickem.QF4 = pickem.Quarters[3] if len(pickem.Quarters) > 3 else None
-    existing_pickem.SF1 = pickem.Semis[0] if len(pickem.Semis) > 0 else None
-    existing_pickem.SF2 = pickem.Semis[1] if len(pickem.Semis) > 1 else None
-    existing_pickem.Final = pickem.Final if pickem.Final is not None else None
+    if pickem.Quarters is not None:
+        existing_pickem.QF1 = pickem.Quarters[0] if len(pickem.Quarters) > 0 else None
+        existing_pickem.QF2 = pickem.Quarters[1] if len(pickem.Quarters) > 1 else None
+        existing_pickem.QF3 = pickem.Quarters[2] if len(pickem.Quarters) > 2 else None
+        existing_pickem.QF4 = pickem.Quarters[3] if len(pickem.Quarters) > 3 else None
+        existing_pickem.SF1 = pickem.Semis[0] if len(pickem.Semis) > 0 else None
+        existing_pickem.SF2 = pickem.Semis[1] if len(pickem.Semis) > 1 else None
+        existing_pickem.Final = pickem.Final if pickem.Final is not None else None  # Update the final if provided
+
     existing_pickem.Points = 0  # Update points if necessary
 
     # Commit the changes to the database
@@ -162,6 +165,56 @@ def update_pickems(user_name: str, user_key: int, pickem: PickemCreate, db: Sess
         "Final": existing_pickem.Final,
         "Points": existing_pickem.Points,
     }
+
+@app.put("/pickems/admin/{user_name}-{user_key}", status_code=status.HTTP_200_OK)
+def update_pickems(user_name: str, user_key: int, pickem: PickemCreate, db: Session = Depends(get_db)):
+    # Fetch the existing pickem record
+    existing_pickem = db.query(Pickems).filter(
+        func.lower(Pickems.UserName) == user_name.lower(),
+        Pickems.UserKey == user_key  # Ensure user_key is treated as an integer
+    ).first()
+    
+    # Check if the pickem exists
+    if existing_pickem is None:
+        # Create a new pickem record
+        new_pickem = Pickems(
+            UserName=user_name,
+            UserKey=user_key,
+            Team3_0=pickem.Team3_0,
+            Team0_3=pickem.Team0_3,
+            Team2=pickem.Top8Teams[0] if len(pickem.Top8Teams) > 0 else None,
+            Team3=pickem.Top8Teams[1] if len(pickem.Top8Teams) > 1 else None,
+            Team4=pickem.Top8Teams[2] if len(pickem.Top8Teams) > 2 else None,
+            Team5=pickem.Top8Teams[3] if len(pickem.Top8Teams) > 3 else None,
+            Team6=pickem.Top8Teams[4] if len(pickem.Top8Teams) > 4 else None,
+            Team7=pickem.Top8Teams[5] if len(pickem.Top8Teams) > 5 else None,
+            Team8=pickem.Top8Teams[6] if len(pickem.Top8Teams) > 6 else None,
+            QF1=pickem.Quarters[0] if pickem.Quarters is not None else None,
+            QF2=pickem.Quarters[1] if pickem.Quarters is not None else None,
+            QF3=pickem.Quarters[2] if pickem.Quarters is not None else None,
+            QF4=pickem.Quarters[3] if pickem.Quarters is not None else None,
+            SF1=pickem.Semis[0] if pickem.Semis is not None else None,
+            SF2=pickem.Semis[1] if pickem.Semis is not None else None,
+            Final=pickem.Final if pickem.Final is not None else None,
+            Points=0
+        )
+        print("data added")
+        
+        db.add(new_pickem)
+        db.commit()
+        db.refresh(new_pickem)
+        
+        return {
+            "UserName": new_pickem.UserName,
+            "UserKey": user_key,  # Return the generated user key
+            "Team3_0": new_pickem.Team3_0,
+            "Team0_3": new_pickem.Team0_3,
+            "Top8Teams": [new_pickem.Team2, new_pickem.Team3, new_pickem.Team4, new_pickem.Team5, new_pickem.Team6, new_pickem.Team7, new_pickem.Team8],
+            "Quarters": [new_pickem.QF1, new_pickem.QF2, new_pickem.QF3, new_pickem.QF4],
+            "Semis": [new_pickem.SF1, new_pickem.SF2],
+            "Final": new_pickem.Final,
+            "Points": 0
+        }
 
 # Get all pickems for a user
 @app.get("/pickems/{user_name}-{user_key}")
