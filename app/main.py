@@ -75,6 +75,13 @@ def create_pickems(user_name: str, pickem: PickemCreate, db: Session = Depends(g
         Team6=pickem.Top8Teams[4] if len(pickem.Top8Teams) > 4 else None,
         Team7=pickem.Top8Teams[5] if len(pickem.Top8Teams) > 5 else None,
         Team8=pickem.Top8Teams[6] if len(pickem.Top8Teams) > 6 else None,
+        QF1=pickem.Quarters[0] if len(pickem.Quarters) > 0 else None,
+        QF2=pickem.Quarters[1] if len(pickem.Quarters) > 1 else None,
+        QF3=pickem.Quarters[2] if len(pickem.Quarters) > 2 else None,
+        QF4=pickem.Quarters[3] if len(pickem.Quarters) > 3 else None,
+        SF1=pickem.Semis[0] if len(pickem.Semis) > 0 else None,
+        SF2=pickem.Semis[1] if len(pickem.Semis) > 1 else None,
+        Final=pickem.Final if pickem.Final is not None else None,
         Points=0
     )
     print("data added")
@@ -117,6 +124,13 @@ def update_pickems(user_name: str, user_key: int, pickem: PickemCreate, db: Sess
     existing_pickem.Team6 = pickem.Top8Teams[4] if len(pickem.Top8Teams) > 4 else None
     existing_pickem.Team7 = pickem.Top8Teams[5] if len(pickem.Top8Teams) > 5 else None
     existing_pickem.Team8 = pickem.Top8Teams[6] if len(pickem.Top8Teams) > 6 else None
+    existing_pickem.QF1 = pickem.Quarters[0] if len(pickem.Quarters) > 0 else None
+    existing_pickem.QF2 = pickem.Quarters[1] if len(pickem.Quarters) > 1 else None
+    existing_pickem.QF3 = pickem.Quarters[2] if len(pickem.Quarters) > 2 else None
+    existing_pickem.QF4 = pickem.Quarters[3] if len(pickem.Quarters) > 3 else None
+    existing_pickem.SF1 = pickem.Semis[0] if len(pickem.Semis) > 0 else None
+    existing_pickem.SF2 = pickem.Semis[1] if len(pickem.Semis) > 1 else None
+    existing_pickem.Final = pickem.Final if pickem.Final is not None else None
     existing_pickem.Points = 0  # Update points if necessary
 
     # Commit the changes to the database
