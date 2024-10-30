@@ -134,7 +134,7 @@ def update_pickems(user_name: str, user_key: int, pickem: PickemCreate, db: Sess
         existing_pickem.SF2 = pickem.Semis[1] if len(pickem.Semis) > 1 else None
         existing_pickem.Final = pickem.Final if pickem.Final is not None else None  # Update the final if provided
 
-    existing_pickem.Points = 0  # Update points if necessary
+    existing_pickem.Points = pickem.Points  # Update points if necessary
 
     # Commit the changes to the database
     db.commit()
